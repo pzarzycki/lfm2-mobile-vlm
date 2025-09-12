@@ -1,63 +1,56 @@
 # React Native + LEAP (Android) minimal bridge skeleton
 
-This package is an **overlay** you apply on top of a fresh React Native app.
-It gives you an Android native bridge for LEAP and a tiny JS demo screen.
+This project provides an Android native bridge for LEAP models and a simple JS demo screen.
 iOS can be added later by creating a mirror `RNLeap` Swift module with the same API.
 
 ## Prereqs
+
 - Android toolchain installed (Android SDK, Java 17, adb).
 - Node.js + yarn or npm.
 - A physical Android device (emulator may fail with large model bundles).
-- LEAP Android SDK available from Maven (the coordinates below use example versions).
+- LEAP Android SDK available from Maven.
 
-## Quickstart (from empty folder)
+## Getting the LEAP Model Files
+
+LFM2 LEAP models (*.bundle files) are officially available on Hugging Face:
+
+1. **Browse models**: Visit [LiquidAI/LeapBundles](https://huggingface.co/LiquidAI/LeapBundles/tree/main) to see all available models
+2. **Download needed model**: For this project, download [LFM2-VL-450M_8da4w.bundle](https://huggingface.co/LiquidAI/LeapBundles/resolve/main/LFM2-VL-450M_8da4w.bundle) (~385 MB)
+3. **Place in project**:
+   - For embedding in APK: Save to `android/app/src/main/assets/models/lfm2-vl-450m.bundle`
+   - For development: Push to device with `adb push path/to/downloaded/model.bundle /sdcard/Download/`
+
+## Quickstart
+
 ```bash
-# 1) Create RN app (you can pick any name)
-npx react-native@latest init LeapRnApp
-
+# 1) Clone this repository
+git clone [repository-url]
 cd LeapRnApp
 
-# 2) Stop Metro (if auto-launched) and install JS deps you want
-yarn add react-native-image-picker
+# 2) Install JavaScript dependencies
+yarn install # or npm install
 
-# 3) Unzip this overlay next to package.json, then copy files into place
-#    (on Linux/macOS; on Windows copy manually)
-unzip ../leap-rn-bridge.zip -d ./
-# This creates ./overlay/... . Now apply overlay:
-rsync -av overlay/ ./
-
-# 4) Android gradle wiring
-# 4a) Include the 'leap' library module in android/settings.gradle:
-#     include ':leap'
-#     project(':leap').projectDir = new File(rootProject.projectDir, 'leap')
-
-# 4b) Depend on it in android/app/build.gradle:
-#     dependencies { implementation project(':leap') }
-
-# 5) Permissions (if you use downloader notifications)
-#    Add to AndroidManifest.xml: <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-
-# 6) Set up the model bundle
-# See MODEL_SETUP.md for instructions on obtaining the model file
-# Option 1: Place in android/app/src/main/assets/models/ for embedding in the APK
-# Option 2: Push to device storage (for development)
-adb push path/to/lfm2-vl-450m.bundle /sdcard/Download/
-
-# 7) Run app
+# 3) Run the app
 yarn start        # terminal 1 (Metro)
 yarn android      # terminal 2 (build+install)
+
+# 4) For a specific device, use the deviceId flag
+yarn android --deviceId <DEVICE_ID>
 ```
 
-## Files provided
+## Project Structure
+
+### Key Files
+
 - `react-native.config.js` – links the local `android/leap` module
 - `app/src/leap/index.ts`, `app/src/leap/types.ts` – JS wrapper API
 - `app/src/screens/Playground.tsx` – simple screen to load model + caption an image
 - `android/leap` – Native Android module with LEAP bridge (Kotlin)
 
-## Notes
-- This is a minimal skeleton; you must add the correct LEAP Maven coordinates/versions.
-- For hackathon speed, push bundles via `adb`. Later, integrate the LEAP model downloader.
-- To add iOS later, create `ios/RNLeap` with the same method names/events and keep JS unchanged.
+### Notes
+
+- To add iOS support, create `ios/RNLeap` with the same method names/events to keep JS unchanged
+- For production apps, consider integrating the LEAP model downloader for better user experience
 
 ## Running & Debugging (Emulator vs Physical Device)
 
@@ -181,11 +174,11 @@ import androidx.lifecycle.lifecycleScope
 private var runner: ai.liquid.leap.ModelRunner? = null
 
 lifecycleScope.launch {
-	try {
-		runner = LeapClient.loadModel("/sdcard/Download/lfm2-vl-450m.bundle")
-	} catch (e: LeapModelLoadingException) {
-		android.util.Log.e("LEAP", "Failed to load: ${e.message}")
-	}
+    try {
+        runner = LeapClient.loadModel("/sdcard/Download/lfm2-vl-450m.bundle")
+    } catch (e: LeapModelLoadingException) {
+        android.util.Log.e("LEAP", "Failed to load: ${e.message}")
+    }
 }
 ```
 
@@ -206,10 +199,10 @@ Then start a streamed generation (text + optional image) via:
 import { startStream } from './app/src/leap';
 
 const stop = await startStream([
-	{ type: 'text', text: 'Describe this image.' }
+    { type: 'text', text: 'Describe this image.' }
 ], {
-	onChunk: t => console.log('chunk', t),
-	onDone: s => { console.log('done', s); stop(); }
+    onChunk: t => console.log('chunk', t),
+    onDone: s => { console.log('done', s); stop(); }
 });
 ```
 

@@ -6,25 +6,24 @@ This project uses large model files that are not stored in Git due to size const
 
 - `lfm2-vl-450m.bundle` (367 MB) - Vision language model for image processing
 
-## Option 1: Manual Download & Placement
+## Option 1: Download from Hugging Face (Recommended)
 
-1. Download the model file from the team's shared storage:
-   - Internal team members: Download from [Team SharePoint/Drive Link]
-   - External collaborators: Request access from project maintainers
+1. Download the LFM2-VL-450M model directly from Hugging Face:
+   - Direct link: [LFM2-VL-450M_8da4w.bundle](https://huggingface.co/LiquidAI/LeapBundles/resolve/main/LFM2-VL-450M_8da4w.bundle) (~385MB)
+   - Browse all models: [LiquidAI/LeapBundles](https://huggingface.co/LiquidAI/LeapBundles/tree/main)
    
-2. Place the file in this directory:
+2. Place the downloaded file in this directory (rename if necessary):
 
    ```plaintext
    android/app/src/main/assets/models/lfm2-vl-450m.bundle
    ```
 
-3. Verify the file integrity (optional):
+3. Verify the file was copied correctly:
 
    ```powershell
    # PowerShell
-   Get-FileHash -Algorithm SHA256 android/app/src/main/assets/models/lfm2-vl-450m.bundle
+   Get-ChildItem android/app/src/main/assets/models/lfm2-vl-450m.bundle
    ```
-   Expected hash: [Add hash here]
 
 ## Option 2: Download Script (Future Enhancement)
 
