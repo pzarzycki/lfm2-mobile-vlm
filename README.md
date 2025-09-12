@@ -37,8 +37,11 @@ rsync -av overlay/ ./
 # 5) Permissions (if you use downloader notifications)
 #    Add to AndroidManifest.xml: <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
-# 6) Push a LEAP model bundle to device (example path)
-adb push ~/Downloads/lfm2-vl-450m.bundle /sdcard/Download/
+# 6) Set up the model bundle
+# See MODEL_SETUP.md for instructions on obtaining the model file
+# Option 1: Place in android/app/src/main/assets/models/ for embedding in the APK
+# Option 2: Push to device storage (for development)
+adb push path/to/lfm2-vl-450m.bundle /sdcard/Download/
 
 # 7) Run app
 yarn start        # terminal 1 (Metro)
