@@ -1,97 +1,232 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# React Native + LEAP (Android) minimal bridge skeleton
 
-# Getting Started
+This package is an **overlay** you apply on top of a fresh React Native app.
+It gives you an Android native bridge for LEAP and a tiny JS demo screen.
+iOS can be added later by creating a mirror `RNLeap` Swift module with the same API.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Prereqs
+- Android toolchain installed (Android SDK, Java 17, adb).
+- Node.js + yarn or npm.
+- A physical Android device (emulator may fail with large model bundles).
+- LEAP Android SDK available from Maven (the coordinates below use example versions).
 
-## Step 1: Start Metro
+## Quickstart (from empty folder)
+```bash
+# 1) Create RN app (you can pick any name)
+npx react-native@latest init LeapRnApp
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+cd LeapRnApp
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+# 2) Stop Metro (if auto-launched) and install JS deps you want
+yarn add react-native-image-picker
 
-```sh
-# Using npm
-npm start
+# 3) Unzip this overlay next to package.json, then copy files into place
+#    (on Linux/macOS; on Windows copy manually)
+unzip ../leap-rn-bridge.zip -d ./
+# This creates ./overlay/... . Now apply overlay:
+rsync -av overlay/ ./
 
-# OR using Yarn
-yarn start
+# 4) Android gradle wiring
+# 4a) Include the 'leap' library module in android/settings.gradle:
+#     include ':leap'
+#     project(':leap').projectDir = new File(rootProject.projectDir, 'leap')
+
+# 4b) Depend on it in android/app/build.gradle:
+#     dependencies { implementation project(':leap') }
+
+# 5) Permissions (if you use downloader notifications)
+#    Add to AndroidManifest.xml: <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+# 6) Push a LEAP model bundle to device (example path)
+adb push ~/Downloads/lfm2-vl-450m.bundle /sdcard/Download/
+
+# 7) Run app
+yarn start        # terminal 1 (Metro)
+yarn android      # terminal 2 (build+install)
 ```
 
-## Step 2: Build and run your app
+## Files provided
+- `react-native.config.js` – links the local `android/leap` module
+- `app/src/leap/index.ts`, `app/src/leap/types.ts` – JS wrapper API
+- `app/src/screens/Playground.tsx` – simple screen to load model + caption an image
+- `android/leap` – Native Android module with LEAP bridge (Kotlin)
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+## Notes
+- This is a minimal skeleton; you must add the correct LEAP Maven coordinates/versions.
+- For hackathon speed, push bundles via `adb`. Later, integrate the LEAP model downloader.
+- To add iOS later, create `ios/RNLeap` with the same method names/events and keep JS unchanged.
 
-### Android
+## Running & Debugging (Emulator vs Physical Device)
 
-```sh
-# Using npm
-npm run android
+These steps reflect what we actually used while validating the bridge and bundled model.
 
-# OR using Yarn
-yarn android
+### 1. Start Metro
+
+In project root (`LeapRnApp`):
+
+```bash
+
 ```
 
-### iOS
+### 2. List Connected Android Targets
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+Use `adb` to see emulators + physical devices:
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+```bash
+adb devices
 ```
 
-Then, and every time you update your native dependencies, run:
+Example output (shortened):
 
-```sh
-bundle exec pod install
+```text
+List of devices attached
+emulator-5554 device
+4A091FDAQ000K8 device
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+Copy the exact device ID you want to target.
 
-```sh
-# Using npm
-npm run ios
+### 3. Install & Launch on a Specific Device
 
-# OR using Yarn
-yarn ios
+Use the `--deviceId` flag (works for both emulator and hardware):
+
+```bash
+npx react-native run-android --deviceId 4A091FDAQ000K8
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+If you omit `--deviceId` and multiple devices are attached the command will abort and ask you to choose—explicit is faster.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+### 4. Emulator Considerations
 
-## Step 3: Modify your app
+- Large model bundles can exceed emulator disk space; a physical device was more reliable for the large `lfm2-vl-450m.bundle`.
+- If using an emulator anyway, ensure it has sufficient internal storage before copying/loading the bundle.
 
-Now that you have successfully run the app, let's make changes!
+### 5. Bundled Model Loading Path
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+Because the model file is placed under `android/app/src/main/assets/models`, we call:
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+```ts
+const localPath = await prepareBundledModel('lfm2-vl-450m.bundle');
+await loadModel(localPath);
+```
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+`prepareBundledModel` copies the asset into the app's internal `filesDir` once, then reuses it.
 
-## Congratulations! :tada:
+### 6. Streaming Test (Playground Screen)
 
-You've successfully run and modified your React Native App. :partying_face:
+Open the in‑app playground UI button, pick an image (optional), then press Ask. Events arrive as:
 
-### Now what?
+- `leap:chunk` incremental text
+- `leap:done` final + optional `tps`
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+Errors surface via `leap:error` and an alert in the playground.
 
-# Troubleshooting
+### 7. Logs & Troubleshooting
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+- Native load failures: look for `LOAD_FAIL` or stack traces in Android Studio Logcat / `adb logcat` (tag may include `ReactNative` or `LEAP`).
+- If you see `NO_MODEL` in JS, ensure `loadModel` resolved before calling `startStream`.
+- Asset copy issues (`ASSET_COPY_FAIL`): confirm the file exists at `android/app/src/main/assets/models/<name>` and rebuild (Gradle packages assets at build time).
 
-# Learn More
+### 8. Reinstalling After Asset Changes
 
-To learn more about React Native, take a look at the following resources:
+Changing or adding a model asset requires reinstalling the app so the new asset is packaged:
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+```bash
+npx react-native run-android --deviceId <DEVICE_ID>
+```
+
+Metro alone is not enough for new native assets.
+
+### 9. Switching Devices Quickly
+
+- Keep one terminal running `yarn start`.
+- Run additional installs with different ids:
+
+```bash
+npx react-native run-android --deviceId emulator-5554
+npx react-native run-android --deviceId 4A091FDAQ000K8
+```
+
+Each command builds (incremental) then installs to that target.
+
+### 10. Unloading (Optional)
+
+You can free model memory without killing the app:
+
+```ts
+await unloadModel();
+```
+
+### 11. Common Quick Checks
+
+- Model path printed / inspected? (You can `console.log(localPath)` right after `prepareBundledModel`.)
+- Multiple presses sending overlapping streams? (Current module does not cancel an in‑flight stream—wait for `leap:done` or `leap:error` before starting another.)
+
+These points stay within what we directly exercised; no speculative optimizations are listed.
+ 
+## Load model in code (official pattern)
+
+From the LEAP Android Quick Start, the model is loaded inside a coroutine (main thread allowed):
+
+```kotlin
+// Kotlin (Activity / Application scope)
+import ai.liquid.leap.LeapClient
+import ai.liquid.leap.LeapModelLoadingException
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
+
+private var runner: ai.liquid.leap.ModelRunner? = null
+
+lifecycleScope.launch {
+	try {
+		runner = LeapClient.loadModel("/sdcard/Download/lfm2-vl-450m.bundle")
+	} catch (e: LeapModelLoadingException) {
+		android.util.Log.e("LEAP", "Failed to load: ${e.message}")
+	}
+}
+```
+
+The React Native bridge wraps this with `RNLeap.loadModel(path)` so in JS you just call:
+
+If you bundle a model inside the app (place it under `android/app/src/main/assets/models/lfm2-vl-450m.bundle`) you can copy it to internal storage then load:
+
+```ts
+import { prepareBundledModel, loadModel } from './app/src/leap';
+
+const path = await prepareBundledModel('lfm2-vl-450m.bundle');
+await loadModel(path);
+```
+
+Then start a streamed generation (text + optional image) via:
+
+```ts
+import { startStream } from './app/src/leap';
+
+const stop = await startStream([
+	{ type: 'text', text: 'Describe this image.' }
+], {
+	onChunk: t => console.log('chunk', t),
+	onDone: s => { console.log('done', s); stop(); }
+});
+```
+
+Image example (base64):
+
+```ts
+{ type: 'image_base64', data: '<BASE64_JPEG>', mime: 'image/jpeg' }
+```
+
+Events emitted by native layer:
+
+- `leap:chunk` – partial text
+- `leap:reasoning` – reasoning tokens (for reasoning models)
+- `leap:function_calls` – model requested function calls
+- `leap:done` – completion (with optional `tps`)
+- `leap:error` – error message
+
+Remember to unload when leaving screen if desired (optional):
+
+```ts
+import { unloadModel } from './app/src/leap';
+await unloadModel();
+```

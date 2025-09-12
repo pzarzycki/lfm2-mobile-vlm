@@ -1,0 +1,35 @@
+plugins {
+  id 'com.android.library'
+  id 'org.jetbrains.kotlin.android'
+}
+
+android {
+  namespace 'ai.liquid.leap.rn'
+  compileSdkVersion rootProject.ext.compileSdkVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    consumerProguardFiles 'consumer-rules.pro'
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    }
+  }
+}
+
+dependencies {
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.24"
+  // Use same react-android version as the main app
+  implementation("com.facebook.react:react-android")
+
+  // LEAP SDK (adjust versions to current docs)
+  implementation "ai.liquid.leap:leap-sdk:0.5.0"
+  implementation "ai.liquid.leap:leap-model-downloader:0.2.0"
+  implementation "ai.liquid.leap:leap-gson:0.2.0"
+  // Coroutines (explicit for Flow operators)
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1"
+}

@@ -1,21 +1,30 @@
 buildscript {
     ext {
-        buildToolsVersion = "36.0.0"
-        minSdkVersion = 24
-        compileSdkVersion = 36
-        targetSdkVersion = 36
-        ndkVersion = "27.1.12297006"
-        kotlinVersion = "2.1.20"
+    // Requested minSdkVersion was 24, but dependency ai.liquid.leap:leap-gson:0.2.0 requires >=31.
+    // Raised to 31 to satisfy dependency constraint.
+    minSdkVersion = 31
+    compileSdkVersion = 35
+    targetSdkVersion = 35
+        kotlinVersion = "1.9.24"
+        reactNativeVersion = "0.81.1"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("com.android.tools.build:gradle:8.4.2")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
+        // Explicit RN gradle plugin to ensure plugin IDs are registered
+        classpath("com.facebook.react:react-native-gradle-plugin:${reactNativeVersion}")
     }
 }
 
-apply plugin: "com.facebook.react.rootproject"
+// Root project plugin not applied; modules configure themselves
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
