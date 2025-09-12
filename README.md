@@ -23,6 +23,7 @@ LFM2 LEAP models (*.bundle files) are officially available on Hugging Face:
 ## Quickstart
 
 ```bash
+
 # 1) Clone this repository
 git clone [repository-url]
 cd LeapRnApp
@@ -58,11 +59,22 @@ These steps reflect what we actually used while validating the bridge and bundle
 
 ### 1. Start Metro
 
+Metro is the JavaScript bundler that comes with React Native. It takes all your JavaScript code and bundles it for the app to use, providing features like hot reloading during development.
+
 In project root (`LeapRnApp`):
 
 ```bash
+# Using yarn
+yarn start
 
+# Or using npm
+npm start
+
+# Or directly with React Native CLI
+npx react-native start
 ```
+
+You'll see Metro's output in the terminal, and it will display a QR code for connecting to dev tools. Keep this terminal running while developing.
 
 ### 2. List Connected Android Targets
 
