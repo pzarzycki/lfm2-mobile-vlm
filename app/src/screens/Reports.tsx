@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { readCsv } from '../storage/files';
 import { parseTransactions } from '../storage/csv';
 
@@ -7,6 +7,10 @@ export default function Reports() {
   const [txText, setTxText] = useState('');
   useEffect(() => { (async () => setTxText(await readCsv('transactions.csv')))(); }, []);
   const txs = useMemo(() => parseTransactions(txText), [txText]);
+
+  // Helpers
+  const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
+  const startOfNextMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 1);
 
   // Weekly (last 7 days, matches Dashboard)
   const week = useMemo(() => {
@@ -40,8 +44,46 @@ export default function Reports() {
     return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 4);
   }, [txs]);
 
+  // This Month totals and categories (ALL categories)
+  const month = useMemo(() => {
+    const now = new Date();
+    const start = startOfMonth(now);
+    const end = startOfNextMonth(now);
+    let total = 0;
+    const map: Record<string, number> = {};
+    for (const t of txs) {
+      const d = new Date(t.date_time.replace(' ', 'T'));
+      if (d >= start && d < end) {
+        const amt = t.net_amount + t.sales_tax;
+        total += amt;
+        map[t.item_type] = (map[t.item_type] || 0) + amt;
+      }
+    }
+    const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
+    return { total, entries };
+  }, [txs]);
+
+  // Month-over-month comparison
+  const monthComparison = useMemo(() => {
+    const now = new Date();
+    const startThis = startOfMonth(now);
+    const startNext = startOfNextMonth(now);
+    const startPrev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endPrev = startThis;
+    let cur = 0, prev = 0;
+    for (const t of txs) {
+      const d = new Date(t.date_time.replace(' ', 'T'));
+      const amt = t.net_amount + t.sales_tax;
+      if (d >= startThis && d < startNext) cur += amt;
+      else if (d >= startPrev && d < endPrev) prev += amt;
+    }
+    const delta = cur - prev;
+    const pct = prev > 0 ? (delta / prev) * 100 : 100;
+    return { cur, prev, delta, pct };
+  }, [txs]);
+
   return (
-    <View style={styles.root}>
+    <ScrollView style={styles.root} contentContainerStyle={{ paddingBottom: 120 }}>
       <Text style={styles.title}>Reports</Text>
       <Text style={styles.desc}>Weekly spending and top categories</Text>
 
@@ -61,17 +103,50 @@ export default function Reports() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Top Categories</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>This Month</Text>
+          <Text style={styles.sectionMetric}>${month.total.toFixed(2)}</Text>
+        </View>
+        <View style={styles.panel}>
+          <Text style={styles.panelText}>Spending from the 1st to today.</Text>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Comparison</Text>
+        <View style={styles.panel}>
+          <View style={styles.panelRow}>
+            <Text style={styles.panelLabel}>This month</Text>
+            <Text style={styles.panelValue}>${monthComparison.cur.toFixed(2)}</Text>
+          </View>
+          <View style={styles.panelRow}>
+            <Text style={styles.panelLabel}>Previous month</Text>
+            <Text style={styles.panelValue}>${monthComparison.prev.toFixed(2)}</Text>
+          </View>
+          <View style={styles.panelRow}>
+            <Text style={styles.panelLabel}>Change</Text>
+            <Text style={[styles.panelValue, monthComparison.delta >= 0 ? styles.deltaUp : styles.deltaDown]}>
+              {monthComparison.delta >= 0 ? '+' : ''}${monthComparison.delta.toFixed(2)} ({monthComparison.pct.toFixed(1)}%)
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Categories (This Month)</Text>
         <View style={styles.grid}>
-          {byCategory.map(([name, amt], i) => (
+          {month.entries.map(([name, amt], i) => (
             <View key={i} style={styles.tile}>
               <Text style={styles.tileTitle}>{name}</Text>
               <Text style={styles.tileAmt}>${amt.toFixed(1)}</Text>
+              <Text style={styles.tilePct}>
+                {month.total > 0 ? Math.round((amt / month.total) * 100) : 0}%
+              </Text>
             </View>
           ))}
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -91,4 +166,12 @@ const styles = StyleSheet.create({
   tile: { width: '48%', backgroundColor: 'white', borderRadius: 12, padding: 12, elevation: 1 },
   tileTitle: { color: '#374151', fontWeight: '700' },
   tileAmt: { color: '#111827', fontWeight: '800', marginTop: 6 },
+  tilePct: { color: '#6B7280', marginTop: 2 },
+  panel: { backgroundColor: 'white', borderRadius: 12, padding: 12, marginTop: 8 },
+  panelRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
+  panelLabel: { color: '#6B7280' },
+  panelValue: { color: '#111827', fontWeight: '700' },
+  panelText: { color: '#6B7280' },
+  deltaUp: { color: '#059669' },
+  deltaDown: { color: '#DC2626' },
 });
