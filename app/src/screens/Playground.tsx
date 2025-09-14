@@ -62,7 +62,7 @@ export default function Playground() {
     <ScrollView contentContainerStyle={{ padding: 16 }}>
   <Button title="Load LFM2-VL model (from /Download)" onPress={onLoad} />
       <View style={{ height: 12 }} />
-      <Button title="Ask (pick image)" onPress={onAsk} />
+  <Button title="Ask (Gallery)" onPress={onAsk} />
       <View style={{ height: 12 }} />
   <Button title="From Camera" onPress={onAskCamera} />
   <View style={{ height: 12 }} />

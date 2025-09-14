@@ -5,10 +5,12 @@
  * @format
  */
 
-import { NewAppScreen } from '@react-native/new-app-screen';
 import { StatusBar, StyleSheet, useColorScheme, View, Text, TouchableOpacity } from 'react-native';
-import Playground from './app/src/screens/Playground';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Dashboard from './app/src/screens/Dashboard';
+import Journal from './app/src/screens/Journal';
+import Reports from './app/src/screens/Reports';
+import { seedFromAssetsIfMissing } from './app/src/storage/files';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -25,28 +27,53 @@ function App() {
   );
 }
 
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const [screen, setScreen] = useState<'home' | 'play'>('home');
+type TabKey = 'dashboard' | 'journal' | 'reports';
 
-  if (screen === 'play') {
-    return (
-      <View style={styles.container}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => setScreen('home')}><Text style={styles.backTxt}>◀ Back</Text></TouchableOpacity>
-        <Playground />
-      </View>
-    );
-  }
+function AppContent() {
+  const [tab, setTab] = useState<TabKey>('dashboard');
+  useEffect(() => {
+    // Seed starter CSVs on first app open
+    seedFromAssetsIfMissing('receipts.csv');
+    seedFromAssetsIfMissing('transactions.csv');
+  }, []);
+  const Screen = useMemo(() => {
+    switch (tab) {
+      case 'journal':
+        return Journal;
+      case 'reports':
+        return Reports;
+      case 'dashboard':
+      default:
+        return Dashboard;
+    }
+  }, [tab]);
 
   return (
     <View style={styles.container}>
-      <NewAppScreen templateFileName="App.tsx" safeAreaInsets={safeAreaInsets} />
-      <View style={styles.overlay}>
-        <TouchableOpacity style={styles.cta} onPress={() => setScreen('play')}>
-          <Text style={styles.ctaTxt}>Open LEAP Playground</Text>
-        </TouchableOpacity>
+      <View style={{ flex: 1 }}>
+        <Screen />
       </View>
+      <BottomTabs value={tab} onChange={setTab} />
     </View>
+  );
+}
+
+function BottomTabs({ value, onChange }: { value: TabKey; onChange: (k: TabKey) => void }) {
+  return (
+    <View style={styles.tabs}>
+      <TabButton label="Dashboard" icon="🏠" active={value === 'dashboard'} onPress={() => onChange('dashboard')} />
+      <TabButton label="Journal" icon="🧾" active={value === 'journal'} onPress={() => onChange('journal')} />
+      <TabButton label="Reports" icon="📊" active={value === 'reports'} onPress={() => onChange('reports')} />
+    </View>
+  );
+}
+
+function TabButton({ label, icon, active, onPress }: { label: string; icon: string; active: boolean; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={[styles.tabBtn, active && styles.tabBtnActive]} onPress={onPress}>
+      <Text style={[styles.tabIcon, active && styles.tabIconActive]}>{icon}</Text>
+      <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{label}</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -54,22 +81,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  overlay: {
-    position: 'absolute',
-    bottom: 40,
-    width: '100%',
-    alignItems: 'center'
+  tabs: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E5E7EB',
+    paddingBottom: 10,
+    paddingTop: 8,
+    justifyContent: 'space-around',
   },
-  cta: {
-    backgroundColor: '#3D6DDF',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 24,
-    elevation: 2
-  },
-  ctaTxt: { color: 'white', fontSize: 16, fontWeight: '600' },
-  backBtn: { padding: 12 },
-  backTxt: { fontSize: 14, color: '#3D6DDF' }
+  tabBtn: { alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10 },
+  tabBtnActive: { backgroundColor: '#EEF2FF' },
+  tabIcon: { fontSize: 18, color: '#6B7280' },
+  tabIconActive: { color: '#4F46E5' },
+  tabLabel: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  tabLabelActive: { color: '#4F46E5', fontWeight: '700' },
 });
 
 export default App;
