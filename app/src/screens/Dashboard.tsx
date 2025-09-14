@@ -13,6 +13,7 @@ import { loadModel, prepareBundledModel, startStream } from '../leap';
 import type { Msg } from '../leap/types';
 import { readCsv } from '../storage/files';
 import { parseTransactions, sumBy } from '../storage/csv';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 type Props = {
   onReceipt?: (summary: string) => void;
@@ -130,8 +131,11 @@ export default function Dashboard({ onReceipt }: Props) {
       <ScrollView contentContainerStyle={{ paddingBottom: 112 }}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Expense Tracker</Text>
-          <Text style={styles.subtitle}>Track your spending with smart receipt scanning</Text>
+          <Text style={styles.title}>Private Expense Tracker</Text>
+          <Text style={styles.subtitle}>
+            Track your spending <Text style={styles.subtitleStrong}>privately</Text> and <Text style={styles.subtitleStrong}>securely</Text> with smart scanner.
+          </Text>
+          <Text style={[styles.subtitle, { marginTop: 2 }]}>No Internet access needed!</Text>
         </View>
 
         {/* Scan card */}
@@ -140,9 +144,9 @@ export default function Dashboard({ onReceipt }: Props) {
           <Text style={styles.cardDesc}>Capture receipts instantly and track your expenses automatically</Text>
           <View style={{ height: 12 }} />
           <View style={styles.row}>
-            <PrimaryButton label="Take Photo" onPress={() => runScan('camera')} />
+            <PrimaryButton label="Take Photo" icon="photo-camera" onPress={() => runScan('camera')} />
             <View style={{ width: 12 }} />
-            <SecondaryButton label="Gallery" onPress={() => runScan('gallery')} />
+            <SecondaryButton label="Gallery" icon="photo-library" onPress={() => runScan('gallery')} />
           </View>
           {!!status && (
             <Text style={styles.status} numberOfLines={3}>
@@ -185,18 +189,24 @@ export default function Dashboard({ onReceipt }: Props) {
   );
 }
 
-function PrimaryButton({ label, onPress }: { label: string; onPress: () => void }) {
+function PrimaryButton({ label, icon, onPress }: { label: string; icon: string; onPress: () => void }) {
   return (
     <TouchableOpacity style={styles.primaryBtn} onPress={onPress}>
-      <Text style={styles.primaryBtnTxt}>📷 {label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Icon name={icon} size={18} color="#fff" />
+        <Text style={styles.primaryBtnTxt}>{label}</Text>
+      </View>
     </TouchableOpacity>
   );
 }
 
-function SecondaryButton({ label, onPress }: { label: string; onPress: () => void }) {
+function SecondaryButton({ label, icon, onPress }: { label: string; icon: string; onPress: () => void }) {
   return (
     <TouchableOpacity style={styles.secondaryBtn} onPress={onPress}>
-      <Text style={styles.secondaryBtnTxt}>🖼️ {label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Icon name={icon} size={18} color="#3156C8" />
+        <Text style={styles.secondaryBtnTxt}>{label}</Text>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -205,17 +215,18 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F6F7FB' },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 24,
+    paddingBottom: 28,
     backgroundColor: '#4F46E5',
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
   },
   title: { color: 'white', fontSize: 22, fontWeight: '800' },
-  subtitle: { color: 'white', opacity: 0.9, marginTop: 6 },
+  subtitle: { color: 'white', opacity: 0.95, marginTop: 6 },
+  subtitleStrong: { color: 'white', fontWeight: '800' },
   card: {
     marginHorizontal: 16,
-    marginTop: -20,
+    marginTop: -12,
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 16,

@@ -15,6 +15,7 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -61,9 +62,9 @@ function AppContent() {
 function BottomTabs({ value, onChange }: { value: TabKey; onChange: (k: TabKey) => void }) {
   return (
     <View style={styles.tabs}>
-      <TabButton label="Dashboard" icon="🏠" active={value === 'dashboard'} onPress={() => onChange('dashboard')} />
-      <TabButton label="Journal" icon="🧾" active={value === 'journal'} onPress={() => onChange('journal')} />
-      <TabButton label="Reports" icon="📊" active={value === 'reports'} onPress={() => onChange('reports')} />
+  <TabButton label="Dashboard" icon="home" active={value === 'dashboard'} onPress={() => onChange('dashboard')} />
+  <TabButton label="Journal" icon="receipt" active={value === 'journal'} onPress={() => onChange('journal')} />
+  <TabButton label="Reports" icon="bar-chart" active={value === 'reports'} onPress={() => onChange('reports')} />
     </View>
   );
 }
@@ -71,7 +72,7 @@ function BottomTabs({ value, onChange }: { value: TabKey; onChange: (k: TabKey) 
 function TabButton({ label, icon, active, onPress }: { label: string; icon: string; active: boolean; onPress: () => void }) {
   return (
     <TouchableOpacity style={[styles.tabBtn, active && styles.tabBtnActive]} onPress={onPress}>
-      <Text style={[styles.tabIcon, active && styles.tabIconActive]}>{icon}</Text>
+      <Icon name={icon} size={20} color={active ? '#4F46E5' : '#6B7280'} />
       <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{label}</Text>
     </TouchableOpacity>
   );
