@@ -158,3 +158,6 @@ For more help, see the official [React Native Environment Setup](https://reactna
 ---
 
 For more help, see the official [React Native Environment Setup](https://reactnative.dev/docs/environment-setup) and [Android CLI Tools](https://developer.android.com/studio#command-tools).
+
+# react_native_web
+https://www.npmjs.com/package/react-native-web
