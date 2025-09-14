@@ -30,31 +30,32 @@ Row semantics
 Columns
 
 - `date_time` (string): Timestamp of the receipt. Matches corresponding values in `transaction-mockup.csv`.
+- `receipt_id` (string): Identifier matching `transaction-mockup.csv` (format `RYYYYMMDD-NN`).
 - `total_net` (number): Sum of `net_amount` across all items in the receipt.
 - `total_sales` (number): Sum of `sales_tax` across all items in the receipt.
 - `vendor` (string): Plausible merchant name for the receipt.
 
 Row semantics
 
-- One row per receipt timestamp.
-- Totals equal the sum of the corresponding transaction rows sharing the same `date_time`.
+- One row per receipt (`receipt_id` and `date_time`).
+- Totals equal the sum of the corresponding transaction rows sharing the same `receipt_id` (and same `date_time`).
 
-Note: The summary file does not include `receipt_id` (by design, to keep it minimal). The join key between files is `date_time`. If you prefer a more robust join, consider adding `receipt_id` to `receipts-mockup.csv` as an extension.
+Note: The summary file includes `receipt_id` for robust joins. Use `receipt_id` primarily; `date_time` can serve as a secondary check.
 
 ## Relationships
 
 - Cardinality: Many transaction rows map to one receipt row (many-to-one).
-- Join key: `date_time`.
+- Join key: `receipt_id` (primary) and `date_time` (secondary validation).
 - Integrity rules (as generated):
   - Every `date_time` present in `receipts-mockup.csv` appears in `transaction-mockup.csv`.
-  - For each shared `date_time`, `total_net = Σ(net_amount)` and `total_sales = Σ(sales_tax)` over the matching transactions.
+  - For each receipt (`receipt_id`), `total_net = Σ(net_amount)` and `total_sales = Σ(sales_tax)` over the matching transactions.
   - Line amounts and taxes are rounded to 2 decimals; receipt totals are the sum of these rounded values.
 
-Example (2025-07-21 18:46:55)
+Example (2025-07-21 18:46:55 / R20250721-02)
 
 - Sum of line `net_amount` = 33.09
 - Sum of line `sales_tax` = 1.52
-- `receipts-mockup.csv` contains a row with `total_net=33.09` and `total_sales=1.52` for the same `date_time`.
+- `receipts-mockup.csv` contains a row with `receipt_id=R20250721-02`, `total_net=33.09` and `total_sales=1.52` for the same `date_time`.
 
 ## Item type ontology
 
@@ -95,22 +96,23 @@ This mapping is illustrative; feel free to standardize or replace names as neede
 SQL-style aggregation from transactions to receipts:
 
 ```sql
--- Derive receipt totals by date_time
+-- Derive receipt totals by receipt_id and date_time
 SELECT
+  receipt_id,
   date_time,
   ROUND(SUM(net_amount), 2) AS total_net,
   ROUND(SUM(sales_tax), 2) AS total_sales
 FROM transactions
-GROUP BY date_time
+GROUP BY receipt_id, date_time
 ORDER BY date_time;
 ```
 
-Joining receipts back to transactions on `date_time`:
+Joining receipts back to transactions on `receipt_id` (preferred):
 
 ```sql
 SELECT t.*, r.total_net, r.total_sales, r.vendor
 FROM transactions t
-JOIN receipts r USING (date_time);
+JOIN receipts r USING (receipt_id);
 ```
 
 ## Extensibility
