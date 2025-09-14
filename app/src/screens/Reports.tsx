@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { readCsv } from '../storage/files';
 import { parseTransactions } from '../storage/csv';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function Reports() {
   const [txText, setTxText] = useState('');
@@ -62,6 +63,26 @@ export default function Reports() {
     const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
     return { total, entries };
   }, [txs]);
+
+  const iconForCategory = useCallback((name: string): string => {
+    const n = name.toLowerCase();
+    if (/(gas|fuel|gasoline)/.test(n)) return 'local-gas-station';
+    if (/(restaurant|dining|food)/.test(n)) return 'restaurant';
+    if (/(cafeteria|cafe|coffee)/.test(n)) return 'local-cafe';
+    if (/(meat|meal|protein)/.test(n)) return 'set-meal';
+    if (/(grocery|supermarket)/.test(n)) return 'local-grocery-store';
+    if (/(pantry)/.test(n)) return 'kitchen';
+    if (/(produce|vegetable|fruit)/.test(n)) return 'eco';
+    if (/(dairy|milk|cheese|yogurt)/.test(n)) return 'breakfast-dining';
+    if (/(bakery|bread|bake)/.test(n)) return 'bakery-dining';
+    if (/(beverage|drink|juice|soda)/.test(n)) return 'local-drink';
+    if (/(transport|bus|metro|subway)/.test(n)) return 'directions-bus';
+    if (/(taxi|uber|lyft|ride)/.test(n)) return 'local-taxi';
+    if (/(entertainment|movie|cinema)/.test(n)) return 'movie';
+    if (/(pharmacy|drug|medicine)/.test(n)) return 'local-pharmacy';
+    if (/(electronics|device|phone)/.test(n)) return 'devices';
+    return 'category';
+  }, []);
 
   // Month-over-month comparison
   const monthComparison = useMemo(() => {
@@ -137,6 +158,7 @@ export default function Reports() {
         <View style={styles.grid}>
           {month.entries.map(([name, amt], i) => (
             <View key={i} style={styles.tile}>
+              <Icon name={iconForCategory(name)} size={72} color="#9CA3AF" style={styles.tileIconBg} />
               <Text style={styles.tileTitle}>{name}</Text>
               <Text style={styles.tileAmt}>${amt.toFixed(1)}</Text>
               <Text style={styles.tilePct}>
@@ -163,7 +185,8 @@ const styles = StyleSheet.create({
   bar: { width: 20, borderRadius: 6, backgroundColor: '#3D6DDF' },
   barLabel: { marginTop: 8, color: '#6B7280', fontSize: 12 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 12 },
-  tile: { width: '48%', backgroundColor: 'white', borderRadius: 12, padding: 12, elevation: 1 },
+  tile: { width: '48%', backgroundColor: 'white', borderRadius: 12, padding: 12, elevation: 1, overflow: 'hidden' },
+  tileIconBg: { position: 'absolute', right: -6, bottom: -8, opacity: 0.12 },
   tileTitle: { color: '#374151', fontWeight: '700' },
   tileAmt: { color: '#111827', fontWeight: '800', marginTop: 6 },
   tilePct: { color: '#6B7280', marginTop: 2 },

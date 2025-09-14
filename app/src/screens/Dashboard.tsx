@@ -126,6 +126,28 @@ export default function Dashboard({ onReceipt }: Props) {
       .map(([name, amt]) => ({ name, amt, pct: Math.round((amt / total) * 100) }));
   }, [txs]);
 
+  const iconForCategory = useCallback((name: string): string => {
+    const n = name.toLowerCase();
+    // Common app categories
+    if (/(gas|fuel|gasoline)/.test(n)) return 'local-gas-station';
+    if (/(restaurant|dining|food)/.test(n)) return 'restaurant';
+    if (/(cafeteria|cafe|coffee)/.test(n)) return 'local-cafe';
+    if (/(meat|meal|protein)/.test(n)) return 'set-meal';
+    if (/(grocery|supermarket)/.test(n)) return 'local-grocery-store';
+    if (/(pantry)/.test(n)) return 'kitchen';
+    if (/(produce|vegetable|fruit)/.test(n)) return 'eco';
+    if (/(dairy|milk|cheese|yogurt)/.test(n)) return 'breakfast-dining';
+    if (/(bakery|bread|bake)/.test(n)) return 'bakery-dining';
+    if (/(beverage|drink|juice|soda)/.test(n)) return 'local-drink';
+    // Other generics
+    if (/(transport|bus|metro|subway)/.test(n)) return 'directions-bus';
+    if (/(taxi|uber|lyft|ride)/.test(n)) return 'local-taxi';
+    if (/(entertainment|movie|cinema)/.test(n)) return 'movie';
+    if (/(pharmacy|drug|medicine)/.test(n)) return 'local-pharmacy';
+    if (/(electronics|device|phone)/.test(n)) return 'devices';
+    return 'category';
+  }, []);
+
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={{ paddingBottom: 112 }}>
@@ -177,6 +199,13 @@ export default function Dashboard({ onReceipt }: Props) {
           <View style={styles.grid}>
             {categories.map((c, i) => (
               <View key={i} style={styles.tile}>
+                {/* Background icon */}
+                <Icon
+                  name={iconForCategory(c.name)}
+                  size={72}
+                  color="#9CA3AF"
+                  style={styles.tileIconBg}
+                />
                 <Text style={styles.tileTitle}>{c.name}</Text>
                 <Text style={styles.tileAmt}>${c.amt.toFixed(1)}</Text>
                 <Text style={styles.tilePct}>{c.pct}%</Text>
@@ -273,7 +302,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 1,
+    overflow: 'hidden'
   },
+  tileIconBg: { position: 'absolute', right: -6, bottom: -8, opacity: 0.12 },
   tileTitle: { color: '#374151', fontWeight: '700' },
   tileAmt: { color: '#111827', fontWeight: '800', marginTop: 6 },
   tilePct: { color: '#6B7280', marginTop: 2 },
