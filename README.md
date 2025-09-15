@@ -25,8 +25,7 @@ Use it as a starting point for mobile apps that run multimodal models on-device.
 
 ## Screenshots
 
-<!-- TODO: Add screenshots of Dashboard, Journal, Reports -->
-<!-- Example: ![Dashboard](docs/img/dashboard.png) -->
+![Screenshots](docs/img/screenshots.jpg) 
 
 ## Quick Start
 
