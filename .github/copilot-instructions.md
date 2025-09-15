@@ -5,7 +5,7 @@ These instructions help AI coding agents work effectively in this React Native +
 ## Big picture
 - App is a minimal React Native shell that demonstrates a native Android bridge to LEAP (LiquidAI) models.
 - JS/TS wrapper lives in `app/src/leap/` and exposes `loadModel`, `unloadModel`, `prepareBundledModel`, and `startStream` which proxy to the native module `RNLeap`.
-- Demo UI lives in `app/src/screens/Playground.tsx` and wires a simple flow: copy model asset → load model → pick/take image → stream caption tokens.
+- Demo UI lives in `app/src/screens/Dashboard.tsx` and wires a simple flow: copy model asset → load model → pick/take image → stream caption tokens.
 - Android native module is linked via `react-native.config.js` pointing to `android/leap` (Kotlin module path). iOS is not implemented yet.
 
 ## Primary workflows
@@ -35,11 +35,11 @@ These instructions help AI coding agents work effectively in this React Native +
 - `startStream(messages, handlers)` returns a function to unsubscribe listeners; caller should call the returned function on completion.
 
 ## UI pattern example
-- See `app/src/screens/Playground.tsx` for the canonical flow:
-  - Buttons: "Load LFM2-VL model (from /Download)", "Ask (pick image)", "From Camera".
-  - Uses `react-native-image-picker` to get base64 JPEG from gallery or camera.
+- See `app/src/screens/Dashboard.tsx` for the canonical flow:
+  - Buttons: "Take Photo" and "Gallery" to scan a receipt.
+  - Uses `react-native-image-picker` to get base64 JPEG from camera or gallery.
   - Builds `Msg[]` with an image + text prompt and calls `startStream` with `{ onChunk, onDone, onError }`.
-  - Appends chunks to local state `out`; onDone calls the `stop()` returned by `startStream`.
+  - Accumulates streamed chunks into a user-visible status; onDone calls the `stop()` returned by `startStream`.
 
 ## Android specifics
 - Native module is auto-linked via `react-native.config.js` with custom `leap` dependency mapping to `android/leap`.
@@ -54,10 +54,10 @@ These instructions help AI coding agents work effectively in this React Native +
 ## Safe changes for agents
 - Adding new demo screens should import the stable `leap` API instead of touching native.
 - If adding new LEAP events/methods, update `index.ts` and mirror the same event names and payload shapes in Android.
-- When adding or moving model assets, also update any code/messages referencing their location (README, `MODEL_SETUP.md`, `Playground.tsx`).
+- When adding or moving model assets, also update any code/messages referencing their location (README, `MODEL_SETUP.md`, `Dashboard.tsx`).
 
 ## Quick references
-- Entry points: `App.tsx` → `Playground.tsx` → `app/src/leap/*`.
+- Entry points: `App.tsx` → `Dashboard.tsx` → `app/src/leap/*`.
 - Scripts: `start`, `android`, `test`, `lint` in `package.json`.
 - Docs: `README.md`, `MODEL_SETUP.md`, `InstallDev.md`.
 

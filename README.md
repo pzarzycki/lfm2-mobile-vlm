@@ -10,7 +10,7 @@ This repository showcases a minimal, production-friendly bridge between React Na
 
 - A native Android module exposing a small, stable JS API
 - A TypeScript wrapper with evented streaming generation
-- A sample UI with tabs (Dashboard, Journal, Reports) and a simple Playground flow to test the model
+- A sample UI with tabs (Dashboard, Journal, Reports) and a simple flow in Dashboard to test the model
 
 Use it as a starting point for mobile apps that run multimodal models on-device.
 
@@ -25,7 +25,7 @@ Use it as a starting point for mobile apps that run multimodal models on-device.
 
 ## Screenshots
 
-<!-- TODO: Add screenshots of Dashboard, Journal, Reports, Playground -->
+<!-- TODO: Add screenshots of Dashboard, Journal, Reports -->
 <!-- Example: ![Dashboard](docs/img/dashboard.png) -->
 
 ## Quick Start
@@ -48,7 +48,7 @@ yarn android
 npx react-native run-android --deviceId <DEVICE_ID>
 ```
 
-To test the model quickly, follow the in‑app Playground: load model → pick/take an image → stream caption.
+To test the model quickly, use the Dashboard screen: load model (auto when scanning) → pick/take an image → stream caption.
 
 ## Prerequisites
 
@@ -59,7 +59,7 @@ To test the model quickly, follow the in‑app Playground: load model → pick/t
 ## Project Structure
 
 - `app/src/leap/` – public JS API: `prepareBundledModel`, `loadModel`, `startStream`, `unloadModel`
-- `app/src/screens/` – demo screens: Dashboard, Journal, Reports, Playground
+- `app/src/screens/` – demo screens: Dashboard, Journal, Reports
 - `android/leap/` – LEAP native module (Kotlin) auto‑linked via `react-native.config.js`
 - `data/` – CSV mock data for first-run seeding
 
@@ -91,7 +91,7 @@ const stop = startStream([
 });
 ```
 
-See `app/src/screens/Playground.tsx` for a complete UI example.
+See `app/src/screens/Dashboard.tsx` for a complete UI example.
 
 ## Roadmap
 

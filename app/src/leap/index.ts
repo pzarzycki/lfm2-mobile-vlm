@@ -1,4 +1,5 @@
 import { NativeModules, NativeEventEmitter } from 'react-native';
+import { MODEL_450M, MODEL_1_6B, localModelPathOrThrow } from '../storage/model';
 import type { Msg } from './types';
 
 const { RNLeap } = NativeModules;
@@ -20,6 +21,14 @@ export async function unloadModel() {
 }
 export async function prepareBundledModel(assetFileName: string) {
   // returns absolute path for later loadModel
+  // Both supported models must be present in local models directory
+  if (assetFileName === MODEL_450M) {
+    return localModelPathOrThrow(MODEL_450M);
+  }
+  if (assetFileName === MODEL_1_6B) {
+    return localModelPathOrThrow(MODEL_1_6B);
+  }
+  // Unknown name: attempt asset copy as last resort
   return RNLeap.ensureAssetCopied(assetFileName);
 }
 

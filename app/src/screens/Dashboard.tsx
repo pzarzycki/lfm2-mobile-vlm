@@ -30,12 +30,12 @@ export default function Dashboard({ onReceipt }: Props) {
     try {
       loadingRef.current = true;
       setStatus('Preparing and loading model...');
-      const localPath = await prepareBundledModel('lfm2-vl-450m.bundle');
+      const localPath = await prepareBundledModel('LFM2-VL-1_6B_8da4w.bundle');
       await loadModel(localPath);
       setModelReady(true);
       setStatus('Model ready.');
     } catch (e: any) {
-      const msg = e?.message || 'Failed to load model. Ensure the bundle exists at android/app/src/main/assets/models/lfm2-vl-450m.bundle or /sdcard/Download/.';
+      const msg = e?.message || 'Failed to load model. Please ensure the model bundle is present.';
       setStatus(msg);
       Alert.alert('Model Load Error', msg);
     } finally {

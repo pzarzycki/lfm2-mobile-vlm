@@ -11,6 +11,8 @@ import Dashboard from './app/src/screens/Dashboard';
 import Journal from './app/src/screens/Journal';
 import Reports from './app/src/screens/Reports';
 import { seedFromAssetsIfMissing } from './app/src/storage/files';
+import { areAllModelsDownloaded } from './app/src/storage/model';
+import ModelDownloadOverlay from './app/src/screens/ModelDownloadOverlay';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -32,10 +34,16 @@ type TabKey = 'dashboard' | 'journal' | 'reports';
 
 function AppContent() {
   const [tab, setTab] = useState<TabKey>('dashboard');
+  const [needsModel, setNeedsModel] = useState(false);
   useEffect(() => {
     // Seed starter CSVs on first app open
     seedFromAssetsIfMissing('receipts.csv');
     seedFromAssetsIfMissing('transactions.csv');
+    // Check model presence
+    (async () => {
+      const all = await areAllModelsDownloaded();
+      setNeedsModel(!all);
+    })();
   }, []);
   const Screen = useMemo(() => {
     switch (tab) {
@@ -55,6 +63,7 @@ function AppContent() {
         <Screen />
       </View>
       <BottomTabs value={tab} onChange={setTab} />
+      <ModelDownloadOverlay visible={needsModel} onDone={() => setNeedsModel(false)} />
     </View>
   );
 }

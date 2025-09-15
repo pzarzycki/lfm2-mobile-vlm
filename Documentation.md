@@ -90,7 +90,7 @@ await unloadModel();
 ## Models and Assets
 
 - Preferred development path: embed a model under `android/app/src/main/assets/models/lfm2-vl-450m.bundle`.
-- Load flow in UI (e.g., Dashboard/Playground): `prepareBundledModel('lfm2-vl-450m.bundle')` → `loadModel()` → `startStream()` with image + prompt.
+- Load flow in UI (e.g., Dashboard): `prepareBundledModel('lfm2-vl-450m.bundle')` → `loadModel()` → `startStream()` with image + prompt.
 
 ### Getting the LEAP Model Files
 
